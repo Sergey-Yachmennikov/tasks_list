@@ -11,15 +11,15 @@ public interface ApplicationRepository {
     Optional<Application> findById(UUID id);
 
     /**
-     * Transitions the application to {@code LIMIT_BLOCKED} and records the lender block id,
-     * but only if its status still equals {@code expectedStatus} at the time of the update.
-     * Implementations should do this as a single conditional statement
-     * (e.g. {@code UPDATE application SET status = 'LIMIT_BLOCKED', lender_block_id = ? WHERE id = ? AND status = ?}),
-     * so the same call both performs the transition and guards against a concurrent transition
-     * of the same application, without needing a separate lock or version field.
+     * Переводит заявку в {@code LIMIT_BLOCKED} и записывает id блокировки от лендера, но
+     * только если её статус на момент обновления всё ещё равен {@code expectedStatus}.
+     * Реализация должна делать это одним условным выражением
+     * (например, {@code UPDATE application SET status = 'LIMIT_BLOCKED', lender_block_id = ? WHERE id = ? AND status = ?}),
+     * чтобы один и тот же вызов одновременно выполнял переход и защищал от конкурентного
+     * перехода этой же заявки — без отдельной блокировки или поля версии.
      *
-     * @return true if exactly one row was updated; false if the application had already moved
-     *         past {@code expectedStatus} (e.g. a concurrent call already blocked the limit)
+     * @return true, если обновилась ровно одна строка; false, если заявка уже перешла
+     *         дальше {@code expectedStatus} (например, конкурентный вызов уже заблокировал лимит)
      */
     boolean compareAndSetLimitBlocked(UUID id, ApplicationStatus expectedStatus, String lenderBlockId);
 }

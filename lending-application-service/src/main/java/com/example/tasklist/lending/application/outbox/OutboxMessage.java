@@ -7,10 +7,10 @@ import java.time.Instant;
 import java.util.UUID;
 
 /**
- * A row in the transactional outbox table. Written in the same DB transaction as the
- * business state change it describes, so the two either both commit or both roll back —
- * that atomicity is the entire point of the pattern. Actual Kafka delivery happens later,
- * out of band, via {@link OutboxMessageProducer}.
+ * Строка в таблице транзакционного outbox. Записывается в той же транзакции БД, что и
+ * бизнес-изменение состояния, которое она описывает, — поэтому оба изменения либо коммитятся
+ * вместе, либо вместе откатываются. Это и есть вся суть паттерна. Реальная доставка в Kafka
+ * происходит позже, отдельно, через {@link OutboxMessageProducer}.
  */
 public record OutboxMessage(
         UUID id,
@@ -30,8 +30,8 @@ public record OutboxMessage(
             Instant now = Instant.now();
             return new OutboxMessage(UUID.randomUUID(), aggregateId, topic, key, payload, OutboxStatus.NEW, 0, now, now);
         } catch (JsonProcessingException e) {
-            // Serialization is fully under our control here (a plain record), so a failure
-            // means a programming error, not a transient condition worth retrying.
+            // Сериализация здесь полностью под нашим контролем (обычный record), поэтому
+            // ошибка означает баг в коде, а не временное состояние, которое стоит ретраить.
             throw new IllegalStateException("Failed to serialize outbox event for aggregate " + aggregateId, e);
         }
     }

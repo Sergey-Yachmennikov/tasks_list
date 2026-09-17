@@ -9,47 +9,49 @@ public interface OutboxRepository {
     void save(OutboxMessage message);
 
     /**
-     * Atomically claims up to {@code limit} due messages (status {@code NEW}, {@code nextAttemptAt}
-     * in the past) by moving them to {@code PUBLISHING} and returns them, ordered by
-     * {@code nextAttemptAt}. Implementations should do the claim as a single
-     * {@code UPDATE ... WHERE id IN (SELECT ... FOR UPDATE SKIP LOCKED) RETURNING ...} statement,
-     * so multiple instances can poll the same table concurrently without double-claiming, and so
-     * the row lock is held only for that one fast statement — never across the network call to
-     * Kafka that happens afterwards.
+     * Атомарно захватывает до {@code limit} готовых к отправке сообщений (статус {@code NEW},
+     * {@code nextAttemptAt} в прошлом), переводя их в {@code PUBLISHING}, и возвращает их,
+     * упорядоченные по {@code nextAttemptAt}. Реализация должна делать захват одним
+     * выражением {@code UPDATE ... WHERE id IN (SELECT ... FOR UPDATE SKIP LOCKED) RETURNING ...},
+     * чтобы несколько инстансов могли одновременно опрашивать одну таблицу без двойного захвата,
+     * и чтобы блокировка строки удерживалась только на время этого одного быстрого выражения —
+     * никогда на время последующего сетевого вызова в Kafka.
      */
     List<OutboxMessage> lockBatchForPublishing(int limit);
 
     void markSent(UUID messageId);
 
     /**
-     * Records a failed publish attempt, moving the row back to {@code NEW} (incrementing its
-     * retry count and pushing {@code nextAttemptAt} out by the caller-computed backoff) so it's
-     * picked up again on a future {@link #lockBatchForPublishing} call once due.
+     * Фиксирует неудачную попытку публикации, возвращая строку обратно в {@code NEW}
+     * (с инкрементом счётчика попыток и сдвигом {@code nextAttemptAt} на вычисленный
+     * вызывающим кодом backoff), чтобы она снова была подхвачена будущим вызовом
+     * {@link #lockBatchForPublishing}, когда придёт её время.
      */
     void recordFailure(UUID messageId, String errorMessage, Instant nextAttemptAt);
 
     /**
-     * Moves the row to a terminal {@link OutboxStatus#DEAD_LETTERED} state once retries are
-     * exhausted, taking it out of the publishing loop for good. A separate dead-letter
-     * table/topic and alert should consume rows in this state; wiring that up is out of
-     * scope for this module.
+     * Переводит строку в терминальный статус {@link OutboxStatus#DEAD_LETTERED} после
+     * исчерпания попыток, окончательно убирая её из цикла публикации. Отдельная dead-letter
+     * таблица/топик и алерт должны обрабатывать строки в этом статусе; их настройка вне
+     * рамок этого модуля.
      */
     void markDeadLettered(UUID messageId, String errorMessage);
 
     /**
-     * Returns rows stuck in {@code PUBLISHING} for longer than {@code staleAfter} to {@code NEW}
-     * (bumping retry count). Covers a poller instance crashing or being killed between claiming
-     * a batch and recording its outcome — without this, those rows would never be retried.
-     * Consumers already have to tolerate duplicate delivery, so a message that was actually
-     * published right before the crash is at worst redelivered once.
+     * Возвращает в {@code NEW} строки, застрявшие в {@code PUBLISHING} дольше, чем
+     * {@code staleAfter} (с инкрементом счётчика попыток). Покрывает случай, когда инстанс
+     * поллера упал или был убит между захватом пачки и записью результата — без этого такие
+     * строки никогда бы не были повторно обработаны. Консьюмеры и так обязаны терпеть
+     * повторную доставку, так что сообщение, которое реально успело опубликоваться прямо
+     * перед падением, в худшем случае будет доставлено ещё раз.
      *
-     * @return number of rows reclaimed
+     * @return количество возвращённых строк
      */
     int reclaimStalePublishing(Instant claimedBefore);
 
-    /** Number of rows still waiting to be published; backs an outbox-backlog gauge. */
+    /** Количество строк, всё ещё ожидающих публикации; используется для gauge-метрики backlog. */
     long countPending();
 
-    /** Deletes SENT rows older than {@code cutoff}. Backs the retention cleanup job. */
+    /** Удаляет строки SENT старше {@code cutoff}. Используется job'ом ретеншена. */
     int deleteSentOlderThan(Instant cutoff);
 }

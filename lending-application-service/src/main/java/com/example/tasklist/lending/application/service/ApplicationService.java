@@ -5,9 +5,9 @@ import java.util.UUID;
 public interface ApplicationService {
 
     /**
-     * Blocks the requested credit amount with the lender and moves the application
-     * from {@code SCORING_APPROVED} to {@code LIMIT_BLOCKED}.
-     * Idempotent: calling it again after a successful block is a no-op.
+     * Блокирует запрошенную сумму кредита у лендера и переводит заявку
+     * из {@code SCORING_APPROVED} в {@code LIMIT_BLOCKED}.
+     * Идемпотентен: повторный вызов после успешной блокировки — no-op.
      */
     void blockLenderLimit(UUID applicationId);
 }

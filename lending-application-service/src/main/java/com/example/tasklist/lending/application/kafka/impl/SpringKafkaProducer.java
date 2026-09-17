@@ -11,10 +11,10 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 /**
- * Sends synchronously (blocks the outbox poller thread up to {@code sendTimeout}) so the
- * caller finds out success/failure immediately and can decide retry vs. dead-letter — the
- * whole reason {@link com.example.tasklist.lending.application.outbox.OutboxMessageProducer}
- * calls this instead of fire-and-forget.
+ * Отправляет синхронно (блокирует поток outbox-поллера на время до {@code sendTimeout}),
+ * чтобы вызывающий код сразу узнал об успехе/неудаче и мог решить — ретраить или отправлять
+ * в dead-letter. Именно ради этого {@link com.example.tasklist.lending.application.outbox.OutboxMessageProducer}
+ * вызывает этот метод, а не полагается на fire-and-forget.
  */
 @Component
 public class SpringKafkaProducer implements KafkaProducer {

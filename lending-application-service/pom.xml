@@ -27,9 +27,9 @@
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
         <dependency>
-            <!-- Plain JDBC, not JPA: repository ops here are hand-written conditional
-                 UPDATEs and SELECT ... FOR UPDATE SKIP LOCKED, which JdbcTemplate expresses
-                 directly and Hibernate doesn't map onto cleanly. -->
+            <!-- Обычный JDBC, а не JPA: операции репозиториев здесь — вручную написанные
+                 условные UPDATE и SELECT ... FOR UPDATE SKIP LOCKED, которые JdbcTemplate
+                 выражает напрямую, а Hibernate чисто на них не ложится. -->
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-jdbc</artifactId>
         </dependency>
@@ -59,7 +59,7 @@
             <artifactId>micrometer-registry-prometheus</artifactId>
         </dependency>
         <dependency>
-            <!-- AOP proxying for @Retry / @CircuitBreaker on LenderClient -->
+            <!-- AOP-проксирование для @Retry / @CircuitBreaker на LenderClient -->
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-aop</artifactId>
         </dependency>
@@ -84,8 +84,9 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <!-- Backs a throwaway DataSourceTransactionManager in the fast, fully-mocked
-                 web-layer test; that test excludes real DataSource/Flyway autoconfiguration. -->
+            <!-- Обеспечивает одноразовый DataSourceTransactionManager в быстром, полностью
+                 замоканном тесте веб-слоя; этот тест исключает реальную автоконфигурацию
+                 DataSource/Flyway. -->
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>
             <scope>test</scope>
@@ -119,10 +120,10 @@
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <version>${spring-boot.version}</version>
                 <configuration>
-                    <!-- Without a classifier, repackage replaces the module's main artifact
-                         with the fat jar, which breaks Failsafe's classpath resolution for
-                         *IT tests run later in the same build. Keep the plain jar as the main
-                         artifact; the executable jar is lending-application-service-*-exec.jar. -->
+                    <!-- Без classifier repackage подменяет основной артефакт модуля fat-jar'ом,
+                         что ломает разрешение classpath у Failsafe для *IT-тестов, запускаемых
+                         позже в той же сборке. Оставляем обычный jar основным артефактом;
+                         исполняемый jar — lending-application-service-*-exec.jar. -->
                     <classifier>exec</classifier>
                 </configuration>
                 <executions>
@@ -138,9 +139,9 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>3.2.5</version>
                 <configuration>
-                    <!-- writeOpenApiSpecSnapshot writes to the source tree; keep it out of
-                         normal test runs, run it explicitly to refresh docs/openapi.yaml.
-                         *IT tests (Testcontainers, needs Docker) run separately via failsafe. -->
+                    <!-- writeOpenApiSpecSnapshot пишет в исходное дерево; держим его вне
+                         обычных прогонов тестов, запускаем явно, чтобы обновить docs/openapi.yaml.
+                         *IT-тесты (Testcontainers, нужен Docker) запускаются отдельно через failsafe. -->
                     <excludedGroups>${surefire.excludedGroups}</excludedGroups>
                 </configuration>
             </plugin>

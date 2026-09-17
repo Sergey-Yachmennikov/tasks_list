@@ -75,12 +75,13 @@ public class LenderService implements ApplicationService {
             throw new InvalidApplicationStatusException(applicationId, ApplicationStatus.SCORING_APPROVED, application.status());
         }
 
-        // The lender call is a slow, unreliable network operation, so it deliberately happens
-        // outside any DB transaction — a local transaction should only ever wrap fast DB work.
+        // Вызов лендера — медленная и ненадёжная сетевая операция, поэтому он намеренно
+        // происходит вне транзакции БД — локальная транзакция должна оборачивать только
+        // быструю работу с БД.
         LenderBlockResult blockResult = callLender(application);
 
-        // Applying the result (status transition + outbox write) is one short local transaction,
-        // which is what makes "update the application" and "record the event to publish" atomic.
+        // Применение результата (переход статуса + запись в outbox) — одна короткая локальная
+        // транзакция, именно это делает "обновить заявку" и "записать событие на публикацию" атомарными.
         Boolean applied = transactionTemplate.execute(status -> {
             boolean updated = applicationRepository.compareAndSetLimitBlocked(
                     applicationId, ApplicationStatus.SCORING_APPROVED, blockResult.blockId());
@@ -92,17 +93,17 @@ public class LenderService implements ApplicationService {
         });
 
         if (Boolean.FALSE.equals(applied)) {
-            // Lost the race to a concurrent call (or a retried request). Since the lender call
-            // above is idempotent per application, the limit is safely blocked either way —
-            // nothing left to persist here.
+            // Проиграли гонку конкурентному вызову (или это повторный запрос). Поскольку вызов
+            // лендера выше идемпотентен для каждой заявки, лимит в любом случае надёжно
+            // заблокирован — сохранять здесь больше нечего.
             log.info("Application {} was already transitioned by a concurrent call; lender block {} is idempotent, nothing to persist",
                     applicationId, blockResult.blockId());
         }
     }
 
     private LenderBlockResult callLender(Application application) {
-        // Deterministic per-application request id: if this method is retried after a crash
-        // or timeout, the lender returns the same block instead of blocking funds twice.
+        // Детерминированный requestId для каждой заявки: если этот метод ретраится после
+        // краша или таймаута, лендер вернёт ту же блокировку вместо повторной блокировки средств.
         String requestId = "app-limit-block:" + application.id();
         Timer.Sample sample = Timer.start(meterRegistry);
         try {

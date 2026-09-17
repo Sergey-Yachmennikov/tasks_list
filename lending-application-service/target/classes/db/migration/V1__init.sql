@@ -22,15 +22,15 @@ CREATE TABLE outbox_message (
     sent_at          TIMESTAMPTZ
 );
 
--- Every poll filters on exactly this predicate; keeps the "find pending work" query
--- an index-only scan instead of a table scan as the table fills up with SENT history.
+-- Каждый поллинг фильтрует ровно по этому предикату; держит запрос "найти ожидающую работу"
+-- index-only сканом вместо полного скана таблицы по мере накопления истории SENT.
 CREATE INDEX idx_outbox_message_pending ON outbox_message (next_attempt_at)
     WHERE status = 'NEW';
 
--- Backs the retention cleanup job (delete SENT rows older than a cutoff).
+-- Используется job'ом ретеншена (удаление строк SENT старше порога).
 CREATE INDEX idx_outbox_message_sent_at ON outbox_message (sent_at)
     WHERE status = 'SENT';
 
--- Backs the stale-claim reclaim job (a poller crashed mid-publish and never recorded an outcome).
+-- Используется job'ом возврата зависших claim'ов (поллер упал посреди публикации и не записал результат).
 CREATE INDEX idx_outbox_message_publishing ON outbox_message (claimed_at)
     WHERE status = 'PUBLISHING';

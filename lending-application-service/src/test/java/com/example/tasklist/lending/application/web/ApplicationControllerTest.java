@@ -39,11 +39,11 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-// Excludes DataSource/Flyway via the standard `spring.autoconfigure.exclude` property rather
-// than a second @SpringBootApplication test class: a second bootstrap class in the same base
-// package gets swept up by this one's component scan, and Spring Boot *merges* every
-// @EnableAutoConfiguration's exclude list it finds into one global set — so a test-only
-// bootstrap's exclusions would silently disable DataSource/Flyway for the real app too.
+// Исключаем DataSource/Flyway через стандартное свойство `spring.autoconfigure.exclude`,
+// а не через второй тестовый класс @SpringBootApplication: второй bootstrap-класс в том же
+// базовом пакете попадёт в component scan этого приложения, а Spring Boot *объединяет*
+// exclude-списки всех найденных @EnableAutoConfiguration в один общий набор — поэтому
+// exclude из тестового bootstrap-класса тихо отключил бы DataSource/Flyway и в настоящем приложении.
 @SpringBootTest(
         classes = LendingApplicationServiceApplication.class,
         properties = "spring.autoconfigure.exclude="
@@ -51,13 +51,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
                 + "org.springframework.boot.autoconfigure.flyway.FlywayAutoConfiguration"
 )
 @AutoConfigureMockMvc
-// Explicit `classes` above disables the automatic pickup of nested @TestConfiguration
-// classes, so it has to be imported explicitly instead.
+// Явный `classes` выше отключает автоматический подхват вложенных классов @TestConfiguration,
+// поэтому его приходится импортировать явно.
 @Import(ApplicationControllerTest.TransactionManagerConfig.class)
 class ApplicationControllerTest {
 
-    // Gives LenderService a real, working PlatformTransactionManager without a live database,
-    // since DataSource/Flyway autoconfiguration is excluded for this test (see the property above).
+    // Даёт LenderService настоящий рабочий PlatformTransactionManager без живой БД,
+    // поскольку автоконфигурация DataSource/Flyway для этого теста исключена (см. свойство выше).
     @TestConfiguration
     static class TransactionManagerConfig {
 
@@ -146,11 +146,11 @@ class ApplicationControllerTest {
     }
 
     /**
-     * Snapshots the live spec to docs/openapi.yaml for consumers who need a static file
-     * (client codegen, contract review) without running the service. Excluded from the
-     * default build (see the module pom's surefire excludedGroups) since writing to the
-     * source tree isn't something a normal test run should do; re-run it by hand after
-     * changing the API:
+     * Снимает снапшот живой спеки в docs/openapi.yaml для потребителей, которым нужен
+     * статический файл (кодогенерация клиента, ревью контракта) без запуска сервиса.
+     * Исключён из обычной сборки (см. surefire excludedGroups в pom модуля), поскольку запись
+     * в исходное дерево — не то, что должен делать обычный прогон тестов; перезапускать вручную
+     * после изменения API:
      * <pre>
      *   mvn -pl lending-application-service test \
      *       -Dtest=ApplicationControllerTest#writeOpenApiSpecSnapshot \

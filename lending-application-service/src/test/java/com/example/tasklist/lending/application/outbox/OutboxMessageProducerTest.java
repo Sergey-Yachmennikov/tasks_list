@@ -79,14 +79,14 @@ class OutboxMessageProducerTest {
         verify(outboxRepository, never()).markDeadLettered(any(), anyString());
         verify(outboxRepository, never()).markSent(any());
 
-        // attempt 1 -> initialBackoff (1s)
+        // попытка 1 -> initialBackoff (1с)
         assertThat(nextAttemptCaptor.getValue()).isAfterOrEqualTo(before.plusSeconds(1));
         assertThat(nextAttemptCaptor.getValue()).isBefore(before.plusSeconds(2));
     }
 
     @Test
     void deadLetters_whenRetriesAreExhausted() {
-        OutboxMessage message = messageWithRetryCount(4); // attempt 5 == maxRetries
+        OutboxMessage message = messageWithRetryCount(4); // попытка 5 == maxRetries
         when(outboxRepository.lockBatchForPublishing(anyInt())).thenReturn(List.of(message));
         doThrow(new RuntimeException("broker unavailable"))
                 .when(kafkaProducer).send(any(), any(), any());

@@ -8,9 +8,9 @@ import java.util.UUID;
 public interface LenderClient {
 
     /**
-     * @param requestId caller-supplied idempotency key. The lender must return the same
-     *                  {@link LenderBlockResult} for repeated calls with the same requestId
-     *                  instead of blocking the amount again.
+     * @param requestId идемпотентный ключ, который передаёт вызывающий код. Лендер должен
+     *                  вернуть тот же {@link LenderBlockResult} на повторные вызовы с тем же
+     *                  requestId, а не блокировать сумму повторно.
      */
     LenderBlockResult blockLimit(
             UUID lenderId,

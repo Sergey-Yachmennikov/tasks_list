@@ -11,6 +11,6 @@ public record Application(
         ApplicationStatus status,
         BigDecimal requestedAmount,
         Optional<String> lenderBlockId
-        // more fields...
+        // ещё поля...
 ) {
 }

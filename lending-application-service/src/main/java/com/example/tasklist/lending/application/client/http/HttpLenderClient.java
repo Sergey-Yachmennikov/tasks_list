@@ -15,16 +15,16 @@ import java.net.http.HttpClient;
 import java.util.UUID;
 
 /**
- * HTTP-based {@link LenderClient}. The lender's actual API contract isn't specified anywhere
- * we own, so this assumes a conventional REST shape: {@code POST /lenders/{lenderId}/limit-blocks}
- * with the {@code requestId} carried as an {@code Idempotency-Key} header, JSON body
- * {@code {applicationId, amount}}, JSON response {@code {blockId}}. Adjust to match the real
- * contract once it exists.
+ * HTTP-реализация {@link LenderClient}. Реального контракта API лендера у нас нигде нет,
+ * поэтому здесь предполагается обычная REST-форма: {@code POST /lenders/{lenderId}/limit-blocks}
+ * с {@code requestId} в заголовке {@code Idempotency-Key}, JSON-телом
+ * {@code {applicationId, amount}} и JSON-ответом {@code {blockId}}. Поправить под реальный
+ * контракт, как только он появится.
  * <p>
- * {@code @Retry} only covers transient failures (network errors, 5xx — see
- * {@code resilience4j.retry.instances.lender} in application.yml); a 4xx from the lender is
- * treated as a genuine business rejection and is not retried. {@code @CircuitBreaker} stops
- * hammering a lender that's down instead of piling up timed-out threads.
+ * {@code @Retry} покрывает только транзиентные сбои (сетевые ошибки, 5xx — см.
+ * {@code resilience4j.retry.instances.lender} в application.yml); 4xx от лендера считается
+ * настоящим бизнес-отказом и не ретраится. {@code @CircuitBreaker} перестаёт долбить упавшего
+ * лендера вместо того, чтобы копить зависшие по таймауту потоки.
  */
 @Component
 public class HttpLenderClient implements LenderClient {
@@ -32,9 +32,11 @@ public class HttpLenderClient implements LenderClient {
     private final RestClient restClient;
 
     public HttpLenderClient(RestClient.Builder restClientBuilder, LenderProperties properties) {
+
         HttpClient httpClient = HttpClient.newBuilder()
                 .connectTimeout(properties.connectTimeout())
                 .build();
+
         JdkClientHttpRequestFactory requestFactory = new JdkClientHttpRequestFactory(httpClient);
         requestFactory.setReadTimeout(properties.readTimeout());
 

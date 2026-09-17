@@ -52,9 +52,9 @@ class LenderServiceTest {
 
     @BeforeEach
     void setUp() {
-        // A mocked PlatformTransactionManager is enough here: TransactionTemplate only needs
-        // getTransaction()/commit() to be callable, and the callback never inspects the status,
-        // so the mock's default null return for getTransaction() is fine.
+        // Замоканного PlatformTransactionManager здесь достаточно: TransactionTemplate нужно
+        // только, чтобы getTransaction()/commit() можно было вызвать, а колбэк никогда не
+        // смотрит на status, так что дефолтный null от мока для getTransaction() — это ок.
         PlatformTransactionManager transactionManager = mock(PlatformTransactionManager.class);
 
         lenderService = new LenderService(

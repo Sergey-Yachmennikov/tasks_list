@@ -16,14 +16,14 @@ import java.time.Instant;
 import java.util.List;
 
 /**
- * Relays outbox rows to Kafka. Runs independently of the transaction that wrote them,
- * which is what decouples "commit the state change" from "publish the event" and gives
- * us at-least-once delivery instead of the dual-write problem (DB commit succeeds, Kafka
- * publish fails, or vice versa).
+ * Передаёт строки outbox в Kafka. Работает независимо от транзакции, которая их записала —
+ * именно это разделяет "закоммитить изменение состояния" и "опубликовать событие" и даёт
+ * нам доставку at-least-once вместо проблемы двойной записи (коммит в БД прошёл, а публикация
+ * в Kafka — нет, или наоборот).
  * <p>
- * Consumers of {@code application-limit-blocked} must therefore be idempotent (dedupe on
- * applicationId), since a crash between {@link KafkaProducer#send} and {@link #markSent}
- * can cause the same message to be delivered twice.
+ * Поэтому консьюмеры {@code application-limit-blocked} обязаны быть идемпотентными (дедуп по
+ * applicationId), поскольку падение между {@link KafkaProducer#send} и {@link #markSent}
+ * может привести к повторной доставке одного и того же сообщения.
  */
 @Component
 public class OutboxMessageProducer {
@@ -58,7 +58,7 @@ public class OutboxMessageProducer {
         }
     }
 
-    /** Deletes delivered rows older than the configured retention window, keeping the table bounded. */
+    /** Удаляет доставленные строки старше настроенного окна хранения, не давая таблице расти бесконечно. */
     @Scheduled(fixedDelayString = "${outbox.cleanup-interval:PT1H}")
     public void cleanupSent() {
         Instant cutoff = Instant.now().minus(properties.sentRetention());
@@ -69,9 +69,9 @@ public class OutboxMessageProducer {
     }
 
     /**
-     * Returns rows abandoned mid-publish (this or another instance claimed them, then crashed
-     * or was killed before recording an outcome) back to the queue. Without this, a crash at
-     * exactly the wrong moment would strand a row in PUBLISHING forever.
+     * Возвращает в очередь строки, брошенные посреди публикации (этот или другой инстанс
+     * захватил их и упал/был убит до того, как записал результат). Без этого падение в
+     * неудачный момент навсегда оставило бы строку в статусе PUBLISHING.
      */
     @Scheduled(fixedDelayString = "${outbox.reclaim-interval:PT1M}")
     public void reclaimStaleClaims() {
@@ -109,9 +109,9 @@ public class OutboxMessageProducer {
         log.warn("Failed to publish outbox message {} (attempt {}): {}", message.id(), attempt, ex.getMessage());
 
         if (attempt >= properties.maxRetries()) {
-            // Out of retries: move it out of the publishing loop for good rather than
-            // spinning on it forever. A dead-letter table/topic + alert should pick rows
-            // in this state up; wiring that up is out of scope for this module.
+            // Попытки исчерпаны: убираем строку из цикла публикации насовсем, а не крутим
+            // бесконечно. Отдельная dead-letter таблица/топик и алерт должны подхватывать
+            // строки в этом статусе; их настройка вне рамок этого модуля.
             outboxRepository.markDeadLettered(message.id(), ex.getMessage());
             counter(message.topic(), "dead_lettered").increment();
             log.error("Outbox message {} exceeded max retries ({}); dead-lettered, needs manual attention",
@@ -123,9 +123,9 @@ public class OutboxMessageProducer {
         }
     }
 
-    /** Exponential backoff (initialBackoff * 2^(attempt-1)), capped at maxBackoff. */
+    /** Экспоненциальный backoff (initialBackoff * 2^(attempt-1)), ограниченный сверху maxBackoff. */
     private Instant computeNextAttempt(int attempt) {
-        long shift = Math.min(attempt - 1, 20); // guards against overflow on pathological configs
+        long shift = Math.min(attempt - 1, 20); // защита от переполнения при патологических конфигах
         long backoffMillis = properties.initialBackoff().toMillis() * (1L << shift);
         long cappedMillis = Math.min(backoffMillis, properties.maxBackoff().toMillis());
         return Instant.now().plusMillis(cappedMillis);

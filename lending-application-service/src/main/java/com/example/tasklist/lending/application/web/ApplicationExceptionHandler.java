@@ -33,11 +33,11 @@ public class ApplicationExceptionHandler {
     }
 
     /**
-     * Catch-all so an unanticipated exception still comes back as our ProblemDetail contract
-     * instead of Spring's default error page/body — and, critically, without leaking
-     * {@code ex.getMessage()} (which for an exception we don't control might contain SQL,
-     * stack details, or other internals) to the client. Full details still go to the logs,
-     * correlated via the request id set by {@link CorrelationIdFilter}.
+     * Catch-all, чтобы непредвиденное исключение всё равно возвращалось в нашем контракте
+     * ProblemDetail, а не в дефолтной странице/теле ошибки от Spring — и, что важно, без утечки
+     * {@code ex.getMessage()} клиенту (для неконтролируемого нами исключения там может быть SQL,
+     * детали стектрейса или другие внутренности). Полные детали всё равно идут в логи,
+     * коррелированные через request id, который проставляет {@link CorrelationIdFilter}.
      */
     @ExceptionHandler(Exception.class)
     public ProblemDetail handleUnexpected(Exception ex) {

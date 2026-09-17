@@ -48,14 +48,14 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
- * Exercises the real wiring end to end: Flyway migrations against real Postgres, the JDBC
- * repositories, {@link com.example.tasklist.lending.application.outbox.OutboxMessageProducer}
- * publishing to a real Kafka broker, and the atomicity of {@code compareAndSetLimitBlocked}
- * under genuine concurrent load — none of which a mocked unit test can actually prove.
- * The lender itself is mocked; it's a third party we don't own, not what this test verifies.
+ * Проверяет реальную сборку целиком: миграции Flyway на настоящем Postgres, JDBC-репозитории,
+ * {@link com.example.tasklist.lending.application.outbox.OutboxMessageProducer}, публикующий
+ * в настоящий брокер Kafka, и атомарность {@code compareAndSetLimitBlocked} под реальной
+ * конкурентной нагрузкой — ничего из этого мок-тест на юнит-уровне доказать не может.
+ * Сам лендер замокан — это внешняя система, не наша, и не то, что проверяет этот тест.
  * <p>
- * *IT naming (not *Test) is deliberate: this needs Docker and runs via failsafe/{@code mvn verify},
- * kept out of the fast default {@code mvn test} loop.
+ * Суффикс *IT (а не *Test) выбран намеренно: тесту нужен Docker, он запускается через
+ * failsafe/{@code mvn verify} и не входит в быстрый дефолтный цикл {@code mvn test}.
  */
 @SpringBootTest(classes = LendingApplicationServiceApplication.class)
 @AutoConfigureMockMvc
@@ -63,12 +63,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class LendingApplicationServiceIT {
 
     static {
-        // Some local Docker daemons enforce a minimum API version above what docker-java
-        // (the client Testcontainers uses) negotiates by default, and reject the older
-        // request with a plain HTTP 400 instead of serving it — which otherwise surfaces here
-        // as a opaque "Can't get Docker image" / "Could not find a valid Docker environment"
-        // failure that has nothing to do with this test's logic. Pin a modern-but-conservative
-        // floor (Docker Engine ~20.10, 2020) unless the environment already overrides it.
+        // Некоторые локальные Docker-демоны требуют минимальную версию API выше той, что
+        // docker-java (клиент, которым пользуется Testcontainers) запрашивает по умолчанию,
+        // и отклоняют старый запрос простым HTTP 400 вместо того, чтобы его обслужить — без
+        // этого фикса здесь всплывает непонятная ошибка "Can't get Docker image" /
+        // "Could not find a valid Docker environment", не имеющая отношения к логике теста.
+        // Фиксируем современный, но консервативный минимум (Docker Engine ~20.10, 2020 год),
+        // если окружение уже не переопределило значение само.
         System.getProperties().putIfAbsent("api.version", "1.41");
     }
 

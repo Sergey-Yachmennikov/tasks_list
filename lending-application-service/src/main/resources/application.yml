@@ -2,7 +2,7 @@ spring:
   application:
     name: lending-application-service
   datasource:
-    # Matches the port docker-compose.yml (project root) publishes Postgres on.
+    # Соответствует порту, на котором docker-compose.yml (корень модуля) публикует Postgres.
     url: ${DB_URL:jdbc:postgresql://localhost:5455/lending}
     username: ${DB_USERNAME:lending}
     password: ${DB_PASSWORD:lending}
@@ -18,20 +18,21 @@ spring:
         enable.idempotence: true
         max.in.flight.requests.per.connection: 5
         retries: 5
-        # KafkaTemplate#send() blocks synchronously on metadata/buffer-space acquisition
-        # before it even returns a Future — kafka.send-timeout (SpringKafkaProducer's
-        # Future#get bound) never gets a chance to apply during that phase. Bound it here too,
-        # or a broker outage blocks the outbox poller thread for the 60s Kafka default instead
-        # of failing fast into the retry/backoff path.
+        # KafkaTemplate#send() синхронно блокируется на получении метаданных/места в буфере
+        # ещё до того, как вернёт Future — kafka.send-timeout (ограничение Future#get в
+        # SpringKafkaProducer) на этом этапе просто не успевает сработать. Ограничиваем и
+        # здесь тоже — иначе сбой брокера блокирует поток outbox-поллера на дефолтные для
+        # Kafka 60 секунд вместо быстрого падения в путь ретрая/backoff.
         max.block.ms: 3000
 
 server:
   port: ${SERVER_PORT:8080}
 
 outbox:
-  # poll-interval / cleanup-interval / reclaim-interval double as @Scheduled fixedDelayString
-  # values, which only understand plain millis or ISO-8601 (unlike @ConfigurationProperties'
-  # Duration binding, which also accepts "500ms"/"1h" — ISO-8601 is the one format both read).
+  # poll-interval / cleanup-interval / reclaim-interval одновременно используются как значения
+  # @Scheduled fixedDelayString, а те понимают только простые миллисекунды или ISO-8601
+  # (в отличие от биндинга Duration в @ConfigurationProperties, который принимает ещё и
+  # "500ms"/"1h" — ISO-8601 единственный формат, который читают оба механизма).
   batch-size: 100
   poll-interval: PT0.5S
   max-retries: 5

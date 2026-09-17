@@ -2,9 +2,9 @@ package com.example.tasklist.lending.application.outbox;
 
 public enum OutboxStatus {
     NEW,
-    /** Claimed by a poller instance and being published; see {@link OutboxMessageProducer}. */
+    /** Захвачено инстансом поллера и находится в процессе публикации; см. {@link OutboxMessageProducer}. */
     PUBLISHING,
     SENT,
-    /** Retries exhausted; excluded from {@link OutboxRepository#lockBatchForPublishing}. */
+    /** Попытки исчерпаны; исключается из {@link OutboxRepository#lockBatchForPublishing}. */
     DEAD_LETTERED
 }

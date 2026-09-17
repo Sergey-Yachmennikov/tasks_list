@@ -52,8 +52,8 @@
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-compiler-plugin</artifactId>
                     <configuration>
-                        <!-- Required for Spring MVC (@PathVariable etc.) to resolve parameter
-                             names via reflection without needing an explicit name on every annotation. -->
+                        <!-- Нужно, чтобы Spring MVC (@PathVariable и т.д.) мог резолвить имена
+                             параметров через рефлексию без явного имени в каждой аннотации. -->
                         <parameters>true</parameters>
                     </configuration>
                 </plugin>
@@ -61,7 +61,7 @@
         </pluginManagement>
     </build>
 
-    <!-- Modules are added one at a time as each is designed; 5 more to come. -->
+    <!-- Модули добавляются по одному по мере проектирования; впереди ещё 5. -->
     <modules>
         <module>lending-application-service</module>
     </modules>

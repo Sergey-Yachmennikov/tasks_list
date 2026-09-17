@@ -59,8 +59,8 @@ public class JdbcOutboxRepository implements OutboxRepository {
 
     @Override
     public List<OutboxMessage> lockBatchForPublishing(int limit) {
-        // Claim via UPDATE ... RETURNING so the FOR UPDATE SKIP LOCKED lock is held only for
-        // this one fast statement, never across the Kafka call that follows.
+        // Захват через UPDATE ... RETURNING: блокировка FOR UPDATE SKIP LOCKED удерживается
+        // только на это одно быстрое выражение, а не на весь последующий вызов Kafka.
         String sql = """
                 UPDATE outbox_message
                 SET status = 'PUBLISHING', claimed_at = :now

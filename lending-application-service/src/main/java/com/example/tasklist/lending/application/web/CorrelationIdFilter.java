@@ -13,10 +13,11 @@ import java.io.IOException;
 import java.util.UUID;
 
 /**
- * Carries a request id through MDC so every log line for one HTTP call — including the
- * eventual async outbox publish it triggers — can be correlated. Honors an inbound
- * {@code X-Request-Id} (e.g. set by an API gateway) instead of always minting a new one,
- * and echoes it back so the caller can quote it when reporting an issue.
+ * Прокидывает id запроса через MDC, чтобы каждую лог-строку для одного HTTP-вызова —
+ * включая последующую асинхронную публикацию в outbox — можно было коррелировать.
+ * Уважает входящий {@code X-Request-Id} (например, проставленный API-шлюзом) вместо того,
+ * чтобы всегда генерировать новый, и возвращает его обратно, чтобы вызывающая сторона могла
+ * сослаться на него при разборе проблемы.
  */
 @Component
 public class CorrelationIdFilter extends OncePerRequestFilter {
@@ -27,6 +28,7 @@ public class CorrelationIdFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws ServletException, IOException {
+
         String requestId = request.getHeader(HEADER);
         if (!StringUtils.hasText(requestId)) {
             requestId = UUID.randomUUID().toString();
