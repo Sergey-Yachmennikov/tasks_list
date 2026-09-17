@@ -62,6 +62,16 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Testcontainers
 class LendingApplicationServiceIT {
 
+    static {
+        // Some local Docker daemons enforce a minimum API version above what docker-java
+        // (the client Testcontainers uses) negotiates by default, and reject the older
+        // request with a plain HTTP 400 instead of serving it — which otherwise surfaces here
+        // as a opaque "Can't get Docker image" / "Could not find a valid Docker environment"
+        // failure that has nothing to do with this test's logic. Pin a modern-but-conservative
+        // floor (Docker Engine ~20.10, 2020) unless the environment already overrides it.
+        System.getProperties().putIfAbsent("api.version", "1.41");
+    }
+
     private static final String TOPIC = "application-limit-blocked";
 
     @Container
