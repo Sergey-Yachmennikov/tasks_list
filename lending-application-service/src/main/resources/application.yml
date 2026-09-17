@@ -1,0 +1,92 @@
+spring:
+  application:
+    name: lending-application-service
+  datasource:
+    # Matches the port docker-compose.yml (project root) publishes Postgres on.
+    url: ${DB_URL:jdbc:postgresql://localhost:5455/lending}
+    username: ${DB_USERNAME:lending}
+    password: ${DB_PASSWORD:lending}
+  flyway:
+    enabled: true
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+      acks: all
+      properties:
+        enable.idempotence: true
+        max.in.flight.requests.per.connection: 5
+        retries: 5
+        # KafkaTemplate#send() blocks synchronously on metadata/buffer-space acquisition
+        # before it even returns a Future — kafka.send-timeout (SpringKafkaProducer's
+        # Future#get bound) never gets a chance to apply during that phase. Bound it here too,
+        # or a broker outage blocks the outbox poller thread for the 60s Kafka default instead
+        # of failing fast into the retry/backoff path.
+        max.block.ms: 3000
+
+server:
+  port: ${SERVER_PORT:8080}
+
+outbox:
+  # poll-interval / cleanup-interval / reclaim-interval double as @Scheduled fixedDelayString
+  # values, which only understand plain millis or ISO-8601 (unlike @ConfigurationProperties'
+  # Duration binding, which also accepts "500ms"/"1h" — ISO-8601 is the one format both read).
+  batch-size: 100
+  poll-interval: PT0.5S
+  max-retries: 5
+  initial-backoff: 1s
+  max-backoff: 5m
+  sent-retention: 7d
+  cleanup-interval: PT1H
+  stale-claim-timeout: 2m
+  reclaim-interval: PT1M
+
+kafka:
+  send-timeout: 5s
+
+lender:
+  base-url: ${LENDER_BASE_URL:http://localhost:8081}
+  connect-timeout: 1s
+  read-timeout: 3s
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      lender:
+        sliding-window-size: 20
+        minimum-number-of-calls: 10
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 30s
+        permitted-number-of-calls-in-half-open-state: 5
+  retry:
+    instances:
+      lender:
+        max-attempts: 3
+        wait-duration: 200ms
+        enable-exponential-backoff: true
+        exponential-backoff-multiplier: 2
+        retry-exceptions:
+          - org.springframework.web.client.ResourceAccessException
+          - org.springframework.web.client.HttpServerErrorException
+        ignore-exceptions:
+          - org.springframework.web.client.HttpClientErrorException
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      probes:
+        enabled: true
+  health:
+    livenessstate:
+      enabled: true
+    readinessstate:
+      enabled: true
+
+logging:
+  pattern:
+    level: "%5p [%X{requestId:-},%X{applicationId:-}]"

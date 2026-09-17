@@ -1,0 +1,5 @@
+com/example/tasklist/lending/application/outbox/OutboxMessageProducerTest.class
+com/example/tasklist/lending/application/LendingApplicationServiceIT.class
+com/example/tasklist/lending/application/web/ApplicationControllerTest.class
+com/example/tasklist/lending/application/web/ApplicationControllerTest$TransactionManagerConfig.class
+com/example/tasklist/lending/application/service/LenderServiceTest.class

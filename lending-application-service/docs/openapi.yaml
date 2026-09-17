@@ -1,0 +1,72 @@
+openapi: 3.0.1
+info:
+  title: Lending Application Service API
+  description: Endpoints for the lender-limit-blocking step of a credit application.
+  version: v1
+servers:
+- url: http://localhost
+  description: Generated server url
+tags:
+- name: Applications
+  description: Operations on credit applications
+paths:
+  /api/v1/applications/{applicationId}/block-limit:
+    post:
+      tags:
+      - Applications
+      summary: Block the requested credit amount with the lender
+      description: |-
+        Moves the application from SCORING_APPROVED to LIMIT_BLOCKED by blocking the requested amount in the external lender system, then schedules an ApplicationLimitBlocked event for publication.
+        Idempotent: calling this again after a successful block returns 204 without contacting the lender a second time.
+      operationId: blockLenderLimit
+      parameters:
+      - name: applicationId
+        in: path
+        description: Application id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "404":
+          description: Application not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+        "409":
+          description: Application is not in SCORING_APPROVED status
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+        "204":
+          description: Limit blocked (or was already blocked)
+        "502":
+          description: Lender system rejected or failed to process the block request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+components:
+  schemas:
+    ProblemDetail:
+      type: object
+      properties:
+        type:
+          type: string
+          format: uri
+        title:
+          type: string
+        status:
+          type: integer
+          format: int32
+        detail:
+          type: string
+        instance:
+          type: string
+          format: uri
+        properties:
+          type: object
+          additionalProperties:
+            type: object
