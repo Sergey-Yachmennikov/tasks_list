@@ -17,6 +17,7 @@ public record OutboxProperties(
         @DefaultValue("2m") Duration staleClaimTimeout,
         @DefaultValue("1m") Duration reclaimInterval
 ) {
+
     public OutboxProperties {
         if (batchSize <= 0) {
             throw new IllegalArgumentException("outbox.batch-size must be positive");

@@ -32,27 +32,33 @@ public class JdbcApplicationRepository implements ApplicationRepository {
 
     @Override
     public Optional<Application> findById(UUID id) {
+
         String sql = """
                 SELECT id, client_id, lender_id, status, requested_amount, lender_block_id
                 FROM application
                 WHERE id = :id
                 """;
+
         List<Application> results = jdbcTemplate.query(sql, new MapSqlParameterSource("id", id), ROW_MAPPER);
+
         return results.stream().findFirst();
     }
 
     @Override
     public boolean compareAndSetLimitBlocked(UUID id, ApplicationStatus expectedStatus, String lenderBlockId) {
+
         String sql = """
                 UPDATE application
                 SET status = :newStatus, lender_block_id = :lenderBlockId
                 WHERE id = :id AND status = :expectedStatus
                 """;
+
         MapSqlParameterSource params = new MapSqlParameterSource()
                 .addValue("newStatus", ApplicationStatus.LIMIT_BLOCKED.name())
                 .addValue("lenderBlockId", lenderBlockId)
                 .addValue("id", id)
                 .addValue("expectedStatus", expectedStatus.name());
+
         return jdbcTemplate.update(sql, params) == 1;
     }
 }

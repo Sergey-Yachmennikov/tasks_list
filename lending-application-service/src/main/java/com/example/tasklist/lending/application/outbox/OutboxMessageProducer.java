@@ -50,6 +50,11 @@ public class OutboxMessageProducer {
                 .register(meterRegistry);
     }
 
+    /**
+     * Забирает очередную пачку неотправленных строк outbox (включая назначенные к повтору,
+     * чей срок уже настал) и публикует каждую в Kafka — это и есть та самая асинхронная
+     * доставка события, отделённая от транзакции, которая записала строку.
+     */
     @Scheduled(fixedDelayString = "${outbox.poll-interval:PT0.5S}")
     public void publishPending() {
         List<OutboxMessage> batch = outboxRepository.lockBatchForPublishing(properties.batchSize());
