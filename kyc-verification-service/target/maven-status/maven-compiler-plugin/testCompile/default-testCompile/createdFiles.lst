@@ -1,0 +1,3 @@
+com/example/tasklist/kyc/application/web/ApplicationControllerTest.class
+com/example/tasklist/kyc/application/service/KycServiceTest.class
+com/example/tasklist/kyc/application/KycVerificationServiceIT.class

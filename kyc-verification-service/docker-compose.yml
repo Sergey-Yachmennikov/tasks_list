@@ -1,0 +1,20 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: tasks-list-kyc-postgres
+    environment:
+      POSTGRES_DB: kyc
+      POSTGRES_USER: kyc
+      POSTGRES_PASSWORD: kyc
+    ports:
+      - "5456:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U kyc -d kyc"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  postgres-data:
