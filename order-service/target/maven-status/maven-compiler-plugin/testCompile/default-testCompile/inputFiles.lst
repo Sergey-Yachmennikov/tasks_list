@@ -1,0 +1,4 @@
+/Users/sergejacmennikov/Desktop/projects/tasks_list/order-service/src/test/java/com/example/tasklist/order/OrderServiceIT.java
+/Users/sergejacmennikov/Desktop/projects/tasks_list/order-service/src/test/java/com/example/tasklist/order/outbox/OutboxMessageProducerTest.java
+/Users/sergejacmennikov/Desktop/projects/tasks_list/order-service/src/test/java/com/example/tasklist/order/service/OrderCreationServiceTest.java
+/Users/sergejacmennikov/Desktop/projects/tasks_list/order-service/src/test/java/com/example/tasklist/order/web/OrderControllerTest.java

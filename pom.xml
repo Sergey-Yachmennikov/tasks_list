@@ -61,10 +61,11 @@
         </pluginManagement>
     </build>
 
-    <!-- Модули добавляются по одному по мере проектирования; впереди ещё 4. -->
+    <!-- Модули добавляются по одному по мере проектирования; впереди ещё 3. -->
     <modules>
         <module>lending-application-service</module>
         <module>kyc-verification-service</module>
+        <module>order-service</module>
     </modules>
 
 </project>
