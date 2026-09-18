@@ -1,4 +1,0 @@
-com/example/tasklist/order/outbox/OutboxMessageProducerTest.class
-com/example/tasklist/order/web/OrderControllerTest.class
-com/example/tasklist/order/OrderServiceIT.class
-com/example/tasklist/order/service/OrderCreationServiceTest.class

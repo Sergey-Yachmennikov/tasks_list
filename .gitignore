@@ -1,1 +1,4 @@
 .idea
+/order-service/target/
+/lending-application-service/target
+/kyc-verification-service/target
