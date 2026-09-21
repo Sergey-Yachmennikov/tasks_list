@@ -63,19 +63,24 @@ public class OrderCreationService implements OrderService {
     }
 
     private List<OrderItem> validateAndBuildItems(CreateOrderCommand command) {
+
         if (command.items() == null || command.items().isEmpty()) {
             throw new InvalidOrderRequestException("Order must contain at least one item");
         }
+
         return command.items().stream()
                 .map(item -> {
+
                     if (item.quantity() <= 0) {
                         throw new InvalidOrderRequestException(
                                 "Item quantity must be positive: product %s, quantity %d".formatted(item.productId(), item.quantity()));
                     }
+
                     if (item.unitPrice() == null || item.unitPrice().signum() < 0) {
                         throw new InvalidOrderRequestException(
                                 "Item unit price must not be negative: product %s".formatted(item.productId()));
                     }
+
                     return new OrderItem(item.productId(), item.quantity(), item.unitPrice());
                 })
                 .toList();

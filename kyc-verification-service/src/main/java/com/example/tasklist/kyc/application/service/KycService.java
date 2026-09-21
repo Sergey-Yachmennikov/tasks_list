@@ -57,9 +57,11 @@ public class KycService implements ApplicationService {
             log.info("Application {} KYC already completed, treating as idempotent retry", applicationId);
             return application;
         }
+
         if (application.status() != ApplicationStatus.KYC_PENDING) {
             throw new InvalidApplicationStatusException(applicationId, ApplicationStatus.KYC_PENDING, application.status());
         }
+
         if (!application.clientId().equals(clientId)) {
             throw new ApplicationClientMismatchException(applicationId, clientId);
         }

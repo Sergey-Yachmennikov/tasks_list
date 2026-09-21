@@ -45,6 +45,7 @@ public class OutboxMessageProducer {
         this.kafkaProducer = kafkaProducer;
         this.properties = properties;
         this.meterRegistry = meterRegistry;
+
         Gauge.builder("outbox.backlog", outboxRepository, OutboxRepository::countPending)
                 .description("Outbox rows still waiting to be published")
                 .register(meterRegistry);

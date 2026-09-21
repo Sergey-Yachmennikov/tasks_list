@@ -44,6 +44,7 @@ public class JdbcOutboxRepository implements OutboxRepository {
                 VALUES
                     (:id, :aggregateId, :topic, :messageKey, :payload, :status, :retryCount, :createdAt, :nextAttemptAt)
                 """;
+
         MapSqlParameterSource params = new MapSqlParameterSource()
                 .addValue("id", message.id())
                 .addValue("aggregateId", message.aggregateId())
@@ -54,6 +55,7 @@ public class JdbcOutboxRepository implements OutboxRepository {
                 .addValue("retryCount", message.retryCount())
                 .addValue("createdAt", Timestamp.from(message.createdAt()))
                 .addValue("nextAttemptAt", Timestamp.from(message.nextAttemptAt()));
+
         jdbcTemplate.update(sql, params);
     }
 
@@ -73,15 +75,18 @@ public class JdbcOutboxRepository implements OutboxRepository {
                 )
                 RETURNING id, aggregate_id, topic, message_key, payload, status, retry_count, created_at, next_attempt_at
                 """;
+
         MapSqlParameterSource params = new MapSqlParameterSource()
                 .addValue("now", Timestamp.from(Instant.now()))
                 .addValue("limit", limit);
+
         return jdbcTemplate.query(sql, params, ROW_MAPPER);
     }
 
     @Override
     public void markSent(UUID messageId) {
         String sql = "UPDATE outbox_message SET status = 'SENT', sent_at = :now WHERE id = :id";
+
         jdbcTemplate.update(sql, new MapSqlParameterSource()
                 .addValue("now", Timestamp.from(Instant.now()))
                 .addValue("id", messageId));
@@ -94,6 +99,7 @@ public class JdbcOutboxRepository implements OutboxRepository {
                 SET status = 'NEW', retry_count = retry_count + 1, last_error = :error, next_attempt_at = :nextAttemptAt
                 WHERE id = :id
                 """;
+
         jdbcTemplate.update(sql, new MapSqlParameterSource()
                 .addValue("error", truncate(errorMessage))
                 .addValue("nextAttemptAt", Timestamp.from(nextAttemptAt))
@@ -103,6 +109,7 @@ public class JdbcOutboxRepository implements OutboxRepository {
     @Override
     public void markDeadLettered(UUID messageId, String errorMessage) {
         String sql = "UPDATE outbox_message SET status = 'DEAD_LETTERED', last_error = :error WHERE id = :id";
+
         jdbcTemplate.update(sql, new MapSqlParameterSource()
                 .addValue("error", truncate(errorMessage))
                 .addValue("id", messageId));
@@ -117,6 +124,7 @@ public class JdbcOutboxRepository implements OutboxRepository {
                     next_attempt_at = :now
                 WHERE status = 'PUBLISHING' AND claimed_at < :claimedBefore
                 """;
+
         return jdbcTemplate.update(sql, new MapSqlParameterSource()
                 .addValue("now", Timestamp.from(Instant.now()))
                 .addValue("claimedBefore", Timestamp.from(claimedBefore)));
